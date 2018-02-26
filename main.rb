@@ -2,12 +2,21 @@ require 'dxopal'
 include DXOpal
 
 require_remote './lib/megaman.rb'
+require_remote './lib/map_tile.rb'
+require_remote './lib/map.rb'
 
 Window.load_resources do
-  megaman = Megaman.new
+  Window.fps = 60
+  Window.width = 512
+  Window.height = 448
+
+  megaman = [Megaman.new]
+  map = Map.create
 
   Window.loop do
-    Sprite.update([megaman])
-    Sprite.draw([megaman])
+    Sprite.update(megaman)
+    Sprite.update(map.tiles)
+    Sprite.draw(map.tiles)
+    Sprite.draw(megaman)
   end
 end

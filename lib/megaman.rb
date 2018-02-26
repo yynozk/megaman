@@ -3,7 +3,7 @@ class Megaman < Sprite
   Image.register(:megaman, "data/megaman.png")
 
   RUN_SPEED = 3
-  JUMP_SPEED = -13
+  JUMP_SPEED = -9
   FALL_SPEED = 0.5
 
   ANIMATIONS = {
@@ -20,7 +20,7 @@ class Megaman < Sprite
     super
     @images = Image[:megaman].slice_tiles(4, 12)
 
-    self.x, self.y = 100, 280
+    self.x, self.y = 100, 96
 
     @vx, @vy = 0, 0
     @action = :entry
@@ -63,9 +63,9 @@ class Megaman < Sprite
 
     case @action
     when :jump
-      if self.y >= 280
+      if self.y >= 96
         @action = :stand
-        self.y = 280
+        self.y = 96
         @vy = 0
       end
     end
