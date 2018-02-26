@@ -2,12 +2,18 @@
 class Megaman < Sprite
   Image.register(:megaman, "data/megaman.png")
 
+  RUN_SPEED = 3
+  JUMP_SPEED = -13
+  FALL_SPEED = 0.5
+
   ANIMATIONS = {
     entry_right:  [3,  [0,  1,  2], :stand],
     stand_right:  [7, [4]],
     stand_left:   [7, [5]],
     run_right:    [7, [9,  10, 11, 10]],
     run_left:     [7, [13, 14, 15, 14]],
+    jump_right:   [7, [24]],
+    jump_left:    [7, [26]],
   }
 
   def initialize
@@ -29,20 +35,43 @@ class Megaman < Sprite
     when *[:stand, :run]
       if Input.key_down?(K_RIGHT)
         @action, @direction = :run, :right
-        @vx = 3
+        @vx = RUN_SPEED
       elsif Input.key_down?(K_LEFT)
         @action, @direction = :run, :left
-        @vx = -3
+        @vx = -RUN_SPEED
       else
         @action = :stand
+      end
+
+      if Input.key_push?(K_X)
+        @action = :jump
+        @vy = JUMP_SPEED
+      end
+    when :jump
+      @vy += FALL_SPEED
+      if Input.key_down?(K_RIGHT)
+        @direction = :right
+        @vx = RUN_SPEED
+      elsif Input.key_down?(K_LEFT)
+        @direction = :left
+        @vx = -RUN_SPEED
+      end
+    end
+
+    self.x += @vx
+    self.y += @vy
+
+    case @action
+    when :jump
+      if self.y >= 280
+        @action = :stand
+        self.y = 280
+        @vy = 0
       end
     end
 
     start_animation if [@action, @direction] != [pre_action, pre_direction]
     animate
-
-    self.x += @vx
-    self.y += @vy
   end
 
   def animate
