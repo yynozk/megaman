@@ -1,5 +1,5 @@
 # coding: utf-8
-class Megaman < Sprite
+class Megaman < ScrollSprite
   Image.register(:megaman, "data/megaman.png")
 
   RUN_SPEED = 3
@@ -20,8 +20,7 @@ class Megaman < Sprite
     super
     @images = Image[:megaman].slice_tiles(4, 12)
 
-    self.x, self.y = 100, 96
-
+    @_x, @_y = 100, 96
     @vx, @vy = 0, 0
     @action = :entry
     @direction = :right
@@ -58,17 +57,19 @@ class Megaman < Sprite
       end
     end
 
-    self.x += @vx
-    self.y += @vy
+    @_x += @vx
+    @_y += @vy
 
     case @action
     when :jump
-      if self.y >= 96
+      if @_y >= 96
         @action = :stand
-        self.y = 96
+        @_y = 96
         @vy = 0
       end
     end
+
+    update_offset
 
     start_animation if [@action, @direction] != [pre_action, pre_direction]
     animate
@@ -91,5 +92,9 @@ class Megaman < Sprite
     a = ANIMATIONS[key]
     @animation = [a[0], a[1].clone, a[2]]
     @animation_count = 0
+  end
+
+  def update_offset
+    @offset[:x] = @_x - 256 if (256..1792) === @_x
   end
 end

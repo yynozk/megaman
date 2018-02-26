@@ -1,4 +1,4 @@
-class MapTile < Sprite
+class MapTile < ScrollSprite
   def self.init(tileset, xcount, ycount)
     @@tileset = tileset.slice_tiles(xcount, ycount)
     @@tile_width = @@tileset[0].width
@@ -7,7 +7,8 @@ class MapTile < Sprite
 
   def initialize(x, y, tile_index)
     super()
-    self.x, self.y = x * @@tile_width, y * @@tile_height
+    @_x = x * @@tile_width
+    @_y = y * @@tile_height
     self.image = @@tileset[tile_index]
 
     @in_window_range_x = -self.image.width..Window.width
@@ -16,11 +17,6 @@ class MapTile < Sprite
 
   def update
     self.visible = in_window?
-  end
-
-  def scroll(offset)
-    self.x += offset[:x]
-    self.y += offset[:y]
   end
 
   def in_window?
