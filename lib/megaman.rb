@@ -1,10 +1,11 @@
 # coding: utf-8
-class Megaman < ScrollSprite
+class Megaman < SpriteEx
   Image.register(:megaman, "data/megaman.png")
 
   RUN_SPEED = 3
   JUMP_SPEED = -9
   FALL_SPEED = 0.5
+  STAND_Y = 96
 
   ANIMATIONS = {
     entry_right:  [3,  [0,  1,  2], :stand],
@@ -20,39 +21,44 @@ class Megaman < ScrollSprite
     super
     @images = Image[:megaman].slice_tiles(4, 12)
 
-    @_x, @_y = 100, 96
+    @_x, @_y = 100, STAND_Y
     @vx, @vy = 0, 0
-    @action = :entry
-    @direction = :right
+    @offset = {x: 0, y: 0}
+    @pre_state = nil
+    @state = {action: :entry, direction: :right}
+    @collided = false
     start_animation
+    animate
+    self.collision = [18, 5, 48, 63]
   end
 
   def update
+    @collided = false
     @vx = 0
-    pre_action, pre_direction = @action, @direction
-    case @action
+    @vy += FALL_SPEED
+
+    case @state[:action]
     when *[:stand, :run]
       if Input.key_down?(K_RIGHT)
-        @action, @direction = :run, :right
+        @state.update({action: :run, direction: :right})
         @vx = RUN_SPEED
       elsif Input.key_down?(K_LEFT)
-        @action, @direction = :run, :left
+        @state.update({action: :run, direction: :left})
         @vx = -RUN_SPEED
       else
-        @action = :stand
+        @state.update({action: :stand})
       end
 
       if Input.key_push?(K_X)
-        @action = :jump
+        @state.update({action: :jump})
         @vy = JUMP_SPEED
       end
     when :jump
-      @vy += FALL_SPEED
       if Input.key_down?(K_RIGHT)
-        @direction = :right
+        @state.update({direction: :right})
         @vx = RUN_SPEED
       elsif Input.key_down?(K_LEFT)
-        @direction = :left
+        @state.update({direction: :left})
         @vx = -RUN_SPEED
       end
     end
@@ -60,35 +66,56 @@ class Megaman < ScrollSprite
     @_x += @vx
     @_y += @vy
 
-    case @action
-    when :jump
-      if @_y >= 96
-        @action = :stand
-        @_y = 96
-        @vy = 0
-      end
+    move
+  end
+
+  def shot(obj)
+    return if obj.bg
+    @collided = true
+
+    if self.pre_bottom <= obj.top and self.bottom > obj.top
+      @state.update({action: :stand}) if @state[:action] == :jump
+      @vy = 0
+      self.bottom = obj.top
     end
 
-    update_offset
+    same_row = self.bottom >= obj.top + 1 and self.top <= obj.bottom
 
-    start_animation if [@action, @direction] != [pre_action, pre_direction]
+    if same_row and self.pre_right <= obj.left and self.right > obj.left
+      self.right = obj.left
+    elsif same_row and self.pre_left >= obj.right and self.left < obj.right
+      self.left = obj.right
+    elsif self.pre_top >= obj.bottom and self.top < obj.bottom
+      self.top = obj.bottom
+      @vy = 0
+    end
+
+    move
+  end
+
+  def draw
+    @state.update({action: :jump}) unless @collided
+
+    start_animation if @state != @pre_state
     animate
+    @pre_state = @state.clone
+    super
   end
 
   def animate
     if @animation_count.zero?
       if @animation[1].empty?
-        @action = (@animation[2] || @action)
+        @state[:action] = (@animation[2] || @state[:action])
         start_animation
       end
       self.image = @images[@animation[1].shift]
     end
     @animation_count += 1
-    @animation_count %= @animation[0]
+    @animation_count = @animation_count % @animation[0]
   end
 
   def start_animation
-    key = "#{@action}_#{@direction}".to_sym
+    key = "#{@state[:action]}_#{@state[:direction]}".to_sym
     a = ANIMATIONS[key]
     @animation = [a[0], a[1].clone, a[2]]
     @animation_count = 0
@@ -96,5 +123,64 @@ class Megaman < ScrollSprite
 
   def update_offset
     @offset[:x] = @_x - 256 if (256..1792) === @_x
+    move
+
+    @offset
+  end
+
+
+  private
+
+  def move
+    self.x = @_x - @offset[:x]
+    self.y = @_y - @offset[:y]
+  end
+
+  # def left
+  #   @_x + self.collision[0]
+  # end
+
+  # def right
+  #   @_x + self.collision[2]
+  # end
+
+  # def top
+  #   @_y + self.collision[1]
+  # end
+
+  # def bottom
+  #   @_y + self.collision[3]
+  # end
+
+  def pre_left
+    self.left - @vx
+  end
+
+  def pre_right
+    self.right - @vx
+  end
+
+  def pre_top
+    self.top - @vy
+  end
+
+  def pre_bottom
+    self.bottom - @vy
+  end
+
+  def left=(val)
+    @_x = val - self.collision[0]
+  end
+
+  def right=(val)
+    @_x = val - self.collision[2]
+  end
+
+  def top=(val)
+    @_y = val - self.collision[1]
+  end
+
+  def bottom=(val)
+    @_y = val - self.collision[3]
   end
 end

@@ -1,7 +1,7 @@
 require 'dxopal'
 include DXOpal
 
-require_remote './lib/scroll_sprite.rb'
+require_remote './lib/util/sprite_ex.rb'
 require_remote './lib/megaman.rb'
 require_remote './lib/map_tile.rb'
 require_remote './lib/map.rb'
@@ -16,7 +16,8 @@ Window.load_resources do
 
   Window.loop do
     Sprite.update([megaman])
-    map.offset = megaman.offset
+    Sprite.check(megaman, map.tiles)
+    map.offset = megaman.update_offset
     Sprite.update(map.tiles)
     Sprite.draw(map.tiles)
     Sprite.draw([megaman])

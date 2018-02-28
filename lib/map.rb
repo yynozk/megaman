@@ -26,7 +26,9 @@ class Map
     tiles = []
     MAP_CSV.each_with_index do |v, i|
       next if v == 0
-      tiles << MapTile.new(i % MAP_WIDTH, (i / MAP_WIDTH).floor, v - 1)
+      tile_index = v - 1
+      collision = [3, 4, 14, 25, 26, 34, 35].include?(tile_index) ? true : false
+      tiles << MapTile.new(i % MAP_WIDTH, (i / MAP_WIDTH).floor, tile_index, collision)
     end
 
     self.new(tiles)
