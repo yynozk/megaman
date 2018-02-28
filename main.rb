@@ -10,6 +10,7 @@ Window.load_resources do
   Window.fps = 60
   Window.width = 512
   Window.height = 448
+  Window.bgcolor = C_WHITE
 
   megaman = Megaman.new
   map = Map.create
