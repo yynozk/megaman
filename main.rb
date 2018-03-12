@@ -2,6 +2,7 @@ require 'dxopal'
 include DXOpal
 
 require_remote './lib/util/sprite_ex.rb'
+require_remote './lib/bullet.rb'
 require_remote './lib/megaman.rb'
 require_remote './lib/map_tile.rb'
 require_remote './lib/map.rb'
